@@ -1,4 +1,3 @@
-# encoding:utf-8
 import math
 import tempfile
 import time
@@ -7,27 +6,19 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 flags = tf.app.flags
 IMAGE_PIXELS = 28
-# 定义默认训练参数和数据路径
 flags.DEFINE_string('data_dir', '/tmp/mnist-data', 'Directory  for storing mnist data')
 flags.DEFINE_integer('hidden_units', 100, 'Number of units in the hidden layer of the NN')
 flags.DEFINE_integer('train_steps', 10000, 'Number of training steps to perform')
 flags.DEFINE_integer('batch_size', 100, 'Training batch size ')
 flags.DEFINE_float('learning_rate', 0.01, 'Learning rate')
-# 定义分布式参数
-
-# 参数服务器parameter server节点
 flags.DEFINE_string("ps_hosts","ps-1:8491",
                     "Comma-separated list of hostname:port pairs")
 
-# 两个worker节点
 flags.DEFINE_string('worker_hosts', 'worker-1:8492,worker-2:8493',
                     'Comma-separated list of hostname:port pairs')
-# 设置job name参数
 flags.DEFINE_string('job_name', None, 'job name: worker or ps')
-# 设置任务的索引
 flags.DEFINE_integer('task_index', None, 'Index of task within the job')
-# 选择异步并行，同步并行
-flags.DEFINE_integer("issync", None, "是否采用分布式的同步模式，1表示同步模式，0表示异步模式")
+flags.DEFINE_integer("issync", None, "1,0")
 
 FLAGS = flags.FLAGS
 
@@ -46,7 +37,6 @@ def main(unused_argv):
     ps_spec = FLAGS.ps_hosts.split(',')
     worker_spec = FLAGS.worker_hosts.split(',')
 
-    # 创建集群
     num_worker = len(worker_spec)
     cluster = tf.train.ClusterSpec({'ps': ps_spec, 'worker': worker_spec})
     server = tf.train.Server(cluster, job_name=FLAGS.job_name, task_index=FLAGS.task_index)
@@ -58,7 +48,7 @@ def main(unused_argv):
     with tf.device(tf.train.replica_device_setter(
             cluster=cluster
     )):
-        global_step = tf.Variable(0, name='global_step', trainable=False)  # 创建纪录全局训练步数变量
+        global_step = tf.Variable(0, name='global_step', trainable=False)  
 
         hid_w = tf.Variable(tf.truncated_normal([IMAGE_PIXELS * IMAGE_PIXELS, FLAGS.hidden_units],
                                                 stddev=1.0 / IMAGE_PIXELS), name='hid_w')
@@ -80,7 +70,7 @@ def main(unused_argv):
         opt = tf.train.AdamOptimizer(FLAGS.learning_rate)
 
         train_step = opt.minimize(cross_entropy, global_step=global_step)
-        # 生成本地的参数初始化操作init_op
+
         init_op = tf.global_variables_initializer()
         train_dir = tempfile.mkdtemp()
         sv = tf.train.Supervisor(is_chief=is_chief, logdir=train_dir, init_op=init_op, recovery_wait_secs=1,
