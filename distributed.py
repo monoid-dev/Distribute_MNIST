@@ -14,10 +14,13 @@ flags.DEFINE_integer('train_steps', 10000, 'Number of training steps to perform'
 flags.DEFINE_integer('batch_size', 100, 'Training batch size ')
 flags.DEFINE_float('learning_rate', 0.01, 'Learning rate')
 # 定义分布式参数
+
 # 参数服务器parameter server节点
-flags.DEFINE_string('ps_hosts', '192.168.32.145:22221', 'Comma-separated list of hostname:port pairs')
+flags.DEFINE_string("ps_hosts","ps-1:8491",
+                    "Comma-separated list of hostname:port pairs")
+
 # 两个worker节点
-flags.DEFINE_string('worker_hosts', '192.168.32.146:22221,192.168.32.160:22221',
+flags.DEFINE_string('worker_hosts', 'worker-1:8492,worker-2:8493',
                     'Comma-separated list of hostname:port pairs')
 # 设置job name参数
 flags.DEFINE_string('job_name', None, 'job name: worker or ps')
@@ -27,7 +30,6 @@ flags.DEFINE_integer('task_index', None, 'Index of task within the job')
 flags.DEFINE_integer("issync", None, "是否采用分布式的同步模式，1表示同步模式，0表示异步模式")
 
 FLAGS = flags.FLAGS
-
 
 def main(unused_argv):
     mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
